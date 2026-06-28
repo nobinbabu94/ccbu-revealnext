@@ -15,7 +15,7 @@ export default function DataTable({ rows }) {
             <tr>
               {[
                 "Created",
-                "Project Name",
+                "Retailer Name",
                 // "Call Points",
                 // "Time Period",
                 "Set Status",
