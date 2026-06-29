@@ -92,7 +92,7 @@ export default function LoginPage() {
           <div className="flex flex-col items-center mb-8">
             <div className="flex items-center gap-4">
             <Image
-              src="//logo.avif"
+              src="/logo.avif"
               alt="Logo"
               width={90}
               height={90}
