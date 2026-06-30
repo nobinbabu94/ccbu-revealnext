@@ -26,11 +26,13 @@ export default function Sidebar({ isOpen }) {
           children: [
             { label: "Products", href: `/retailerPlanogram/${id}/masterdata/products` },
             { label: "Stores", href: `/retailerPlanogram/${id}/masterdata/stores` },
-            { label: "Weeks", href: `/retailerPlanogram/${id}/masterdata/weeks` },
+            { label: "Planograms", href: `/retailerPlanogram/${id}/masterdata/planograms` },
+            { label: "Time Setup", href: `/retailerPlanogram/${id}/masterdata/timesetup` },
+
           ],
         },
         {
-          label: "Project Setup",
+          label: "Weekly Sales Upload",
           href: "#",
           icon: (
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
@@ -40,20 +42,20 @@ export default function Sidebar({ isOpen }) {
           children: [{ label: "Uploads", href: `/retailerPlanogram/${id}/uploads` }],
         },
 
-        {
-          label: "Data Validation",
-          href: "#",
-          icon: (
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-              <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          ),
-          children: [
-            { label: "Retailer Products", href: `/retailerPlanogram/${id}/retailerProducts` },
-            { label: "Retailer Stores", href: `/retailerPlanogram/${id}/retailerStores` },
-          ],
-        },
+        // {
+        //   label: "Data Validation",
+        //   href: "#",
+        //   icon: (
+        //     <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+        //       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+        //       <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        //     </svg>
+        //   ),
+        //   children: [
+        //     { label: "Retailer Products", href: `/retailerPlanogram/${id}/retailerProducts` },
+        //     { label: "Retailer Stores", href: `/retailerPlanogram/${id}/retailerStores` },
+        //   ],
+        // },
         {
           label: "Publish",
           href: `/retailerPlanogram/${id}/publish`,

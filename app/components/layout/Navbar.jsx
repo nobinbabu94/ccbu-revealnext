@@ -15,8 +15,8 @@ export default function Navbar({ onToggleSidebar }) {
 
   const isRetailerPlanogram = pathname?.startsWith("/retailerPlanogram");
   const parts = pathname?.split("/") || [];
-  const projectId = parts[2];
-  const projectName = projectId ? `Project ${projectId}` : "Retailer Planogram";
+  const retailerId = parts[2];
+  const retailerName = retailerId ? `Retailer ${retailerId}` : "Retailer Planogram";
 
   const handleMouseEnter = () => {
     clearTimeout(hoverTimeoutRef.current);
@@ -63,6 +63,22 @@ export default function Navbar({ onToggleSidebar }) {
     >
       <div className="flex items-center justify-between h-16 px-6 gap-6">
 
+        {/* Sidebar toggle */}
+        <button
+          onClick={onToggleSidebar}
+          className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 flex-shrink-0"
+          style={{ color: textSecondary }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBg; e.currentTarget.style.color = textPrimary; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = textSecondary; }}
+          aria-label="Toggle sidebar"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+
         {/* Left Section - Back Button & Project Info */}
         {isRetailerPlanogram && (
           <div className="flex items-center gap-4">
@@ -97,7 +113,7 @@ export default function Navbar({ onToggleSidebar }) {
 
             <div className="flex flex-col gap-1">
               <h1 style={{ color: textPrimary }} className="text-base font-semibold">
-                {projectName}
+                {retailerName}
               </h1>
               <p style={{ color: textSecondary }} className="text-xs">
                 Retailer Planogram
