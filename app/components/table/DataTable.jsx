@@ -50,7 +50,7 @@ export default function DataTable({ rows }) {
 
                   <td className="px-5 py-4">
                     <Link
-                      href={`/retailerPlanogram/${row.id}/uploads`}
+                      href={`/retailerPlanogram/${row.id}/products`}
                       className="text-[#F40009] hover:underline font-medium"
                     >
                       {row.name}

@@ -15,9 +15,12 @@ import {
   fetchAuthSession,
   signIn,
   signOut,
+  confirmSignIn,
 } from "aws-amplify/auth";
 import { initAmplify } from "./amplifyConfig";
 
+// Configure Amplify at module load time so it's ready before any auth call.
+initAmplify();
 
 const AuthContext = createContext(null);
 
@@ -30,61 +33,25 @@ export function AuthProvider({ children }) {
   const pathname = usePathname();
 
   const [user, setUser] = useState(null);
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   const buildUser = async () => {
     try {
-      const currentUser =
-        await getCurrentUser();
-
-      const attributes =
-        await fetchUserAttributes();
-
-      const session =
-        await fetchAuthSession();
-
-      const groups =
-        session?.tokens?.accessToken?.payload?.[
-        "cognito:groups"
-        ] || [];
-
-      let role = "user";
-
-      if (groups.includes("Admins")) {
-        role = "admin";
-      } else if (
-        groups.includes("Retailers")
-      ) {
-        role = "retailer";
-      }
+      const currentUser = await getCurrentUser();
+      const attributes = await fetchUserAttributes();
 
       return {
-        username:
-          currentUser.username,
-
-        email:
-          attributes.email || "",
-
-        given_name:
-          attributes.given_name || "",
-
-        family_name:
-          attributes.family_name || "",
-
-        role,
+        username: currentUser.username,
+        email: attributes.email || "",
+        given_name: attributes.given_name || "",
+        family_name: attributes.family_name || "",
       };
-    } catch (error) {
-      console.log(
-        "No authenticated user"
-      );
+    } catch {
       return null;
     }
   };
 
   useEffect(() => {
-    initAmplify();
-
     const loadUser = async () => {
       const userData = await buildUser();
       setUser(userData);
@@ -97,40 +64,47 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        await fetchAuthSession({
-          forceRefresh: true,
-        });
+        await fetchAuthSession({ forceRefresh: true });
       } catch (err) {
-        console.error(
-          "Session refresh failed",
-          err
-        );
-
+        console.error("Session refresh failed", err);
         try {
           await signOut();
-        } catch { }
-
+        } catch {}
         setUser(null);
       }
-    }, 10 * 60 * 1000); // every 10 minutes
+    }, 10 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const login = async ({
-    username,
-    password,
-  }) => {
-    await signIn({
-      username,
-      password,
-    });
+  const login = async ({ username, password }) => {
+    const output = await signIn({ username, password });
 
-    const userData =
-      await buildUser();
+    if (output.nextStep?.signInStep === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
+      // Signal to the login page that a new password is required.
+      return { requiresNewPassword: true };
+    }
+
+    const userData = await buildUser();
+
+    if (!userData) {
+      throw new Error("Sign-in succeeded but could not retrieve user profile. Please try again.");
+    }
 
     setUser(userData);
+    return userData;
+  };
 
+  const completeNewPassword = async (newPassword) => {
+    await confirmSignIn({ challengeResponse: newPassword });
+
+    const userData = await buildUser();
+
+    if (!userData) {
+      throw new Error("Password updated but could not retrieve user profile. Please try again.");
+    }
+
+    setUser(userData);
     return userData;
   };
 
@@ -150,14 +124,8 @@ export function AuthProvider({ children }) {
         user,
         loading,
         login,
+        completeNewPassword,
         logout,
-
-        isAdmin:
-          user?.role === "admin",
-
-        isRetailer:
-          user?.role ===
-          "retailer",
       }}
     >
       {children}

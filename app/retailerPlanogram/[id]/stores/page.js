@@ -65,7 +65,7 @@ export default function MasterStoresPage() {
     setLoading(true);
     setApiError(null);
     try {
-      const data = await apiGet("/stores", {
+      const data = await apiGet("/liststores", {
         skip:     page * PAGE_SIZE,
         limit:    PAGE_SIZE,
         search:   debouncedSearch,
@@ -73,8 +73,8 @@ export default function MasterStoresPage() {
         state:    stateFilter,
         district: districtFilter,
       });
-      setStores(data?.data?.stores ?? []);
-      setTotal(data?.data?.total ?? 0);   
+      setStores(data?.stores ?? []);
+      setTotal(data?.total ?? 0);   
     } catch (err) {
       setApiError(err.message);
     } finally {
@@ -85,7 +85,7 @@ export default function MasterStoresPage() {
   useEffect(() => { fetchStores(); }, [fetchStores]);
 
   useEffect(() => {
-    apiGet("/stores", { limit: 100 })
+    apiGet("/liststores", { limit: 100 })
       .then((data) => {
         const s = data?.data?.stores ?? [];
         setOpts({

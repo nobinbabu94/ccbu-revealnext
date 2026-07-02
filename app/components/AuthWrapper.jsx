@@ -29,20 +29,9 @@ export default function AuthWrapper({
       return;
     }
 
-    // Authenticated
+    // Authenticated — redirect away from public routes
     if (PUBLIC_ROUTES.includes(pathname)) {
-      switch (user.role) {
-        case "admin":
-          router.replace("/manageReports");
-          break;
-
-        case "retailer":
-          router.replace("/retailerPlanogram");
-          break;
-
-        default:
-          router.replace("/");
-      }
+      router.replace("/manageReports");
     }
   }, [user, loading, pathname, router]);
 

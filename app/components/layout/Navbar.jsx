@@ -4,11 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "../ThemeProvider";
+import { useAuth } from "../AuthProvider";
 
 export default function Navbar({ onToggleSidebar }) {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef(null);
@@ -34,9 +36,8 @@ export default function Navbar({ onToggleSidebar }) {
     return () => clearTimeout(hoverTimeoutRef.current);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    await logout();
     router.push("/login");
   };
 

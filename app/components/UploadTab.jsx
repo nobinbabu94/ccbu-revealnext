@@ -3,7 +3,7 @@
 import { createPortal } from "react-dom";
 import Uppy from "@uppy/core";
 import { useEffect, useMemo, useState } from "react";
-import { apiGet } from "@/lib/api";
+import { apiGet, getAuthHeaders } from "@/lib/api";
 import { url } from "@/data/constants";
 import UppyDash from "./uppy/Uppydash";
 
@@ -101,7 +101,8 @@ function UploadModal({ card, theme, onClose, onSuccess }) {
     formData.append("file", files[0].data, files[0].name);
 
     try {
-      const res = await fetch(url(card.uploadPath), { method: "POST", body: formData });
+      const headers = await getAuthHeaders(); // no Content-Type — browser sets it with boundary
+      const res = await fetch(url(card.uploadPath), { method: "POST", headers, body: formData });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail ?? err.message ?? `Upload failed (${res.status})`);

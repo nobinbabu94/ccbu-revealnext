@@ -24,9 +24,9 @@ export default function Sidebar({ isOpen }) {
             </svg>
           ),
           children: [
-            { label: "Products", href: `/retailerPlanogram/${id}/masterdata/products` },
-            { label: "Stores", href: `/retailerPlanogram/${id}/masterdata/stores` },
-            { label: "Time Setup", href: `/retailerPlanogram/${id}/masterdata/timesetup` },
+            { label: "Products", href: `/retailerPlanogram/${id}/products` },
+            { label: "Stores", href: `/retailerPlanogram/${id}/stores` },
+            { label: "Time Setup", href: `/retailerPlanogram/${id}/timesetup` },
           ],
         },
         {

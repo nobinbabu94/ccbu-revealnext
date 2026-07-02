@@ -134,7 +134,7 @@ export default function MasterProductsPage() {
           limit: PAGE_SIZE,
         });
       } else {
-        data = await apiGet("/products", {
+        data = await apiGet("/listproducts", {
           skip:         page * PAGE_SIZE,
           limit:        PAGE_SIZE,
           category:     categoryFilter,
@@ -143,8 +143,8 @@ export default function MasterProductsPage() {
           segment:      segmentFilter,
         });
       }
-      setProducts(data?.data?.products ?? []);
-      setTotal(data?.data?.total ?? 0);
+      setProducts(data?.products ?? []);
+      setTotal(data?.total ?? 0);
     } catch (err) {
       setApiError(err.message);
     } finally {
@@ -156,7 +156,7 @@ export default function MasterProductsPage() {
 
   // ── populate filter dropdowns ──────────────────────────────────────────────
   useEffect(() => {
-    apiGet("/products", { limit: 100 })
+    apiGet("/listproducts", { limit: 100 })
       .then((data) => {
         const p = data?.data?.products ?? [];
         setOpts({
