@@ -65,6 +65,34 @@ const TABS = [
   { key: "upload",   label: "Upload Master Products" },
 ];
 
+// ─── Helper: Frontend sorting ──────────────────────────────────────────────────
+
+function sortProducts(products, sortBy, sortDir) {
+  if (!sortBy) return products;
+
+  const sorted = [...products].sort((a, b) => {
+    const aVal = a[sortBy];
+    const bVal = b[sortBy];
+
+    // Handle null/undefined
+    if (aVal == null && bVal == null) return 0;
+    if (aVal == null) return 1;
+    if (bVal == null) return -1;
+
+    // String comparison
+    if (typeof aVal === "string" && typeof bVal === "string") {
+      return aVal.localeCompare(bVal);
+    }
+
+    // Numeric comparison
+    if (aVal < bVal) return -1;
+    if (aVal > bVal) return 1;
+    return 0;
+  });
+
+  return sortDir === "desc" ? sorted.reverse() : sorted;
+}
+
 export default function MasterProductsPage() {
   const { theme: mode } = useTheme();
   const isDark = mode === "dark";
@@ -100,9 +128,27 @@ export default function MasterProductsPage() {
   const [manufacturerFilter, setManufacturerFilter] = useState("");
   const [segmentFilter,      setSegmentFilter]      = useState("");
   const [page, setPage] = useState(0);
+  const [sortBy, setSortBy] = useState("");
+  const [sortDir, setSortDir] = useState("asc");
 
+  const handleSort = (key) => {
+    if (sortBy === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortDir("asc");
+    }
+    setPage(0);
+  };
+
+  // Reset page immediately when search starts (not in debounce)
   useEffect(() => {
-    const t = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(0); }, 400);
+    setPage(0);
+  }, [searchQuery]);
+
+  // Debounce the search query separately
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(searchQuery); }, 400);
     return () => clearTimeout(t);
   }, [searchQuery]);
 
@@ -126,39 +172,46 @@ export default function MasterProductsPage() {
     setLoading(true);
     setApiError(null);
     try {
-      let data;
+      let res;
       if (debouncedSearch) {
-        data = await apiGet("/products/search", {
-          q:     debouncedSearch,
-          skip:  page * PAGE_SIZE,
-          limit: PAGE_SIZE,
+        // Search endpoint: only q parameter
+        res = await apiGet("/searchproducts", {
+          q: debouncedSearch,
         });
       } else {
-        data = await apiGet("/listproducts", {
-          skip:         page * PAGE_SIZE,
-          limit:        PAGE_SIZE,
-          category:     categoryFilter,
-          brand:        brandFilter,
-          manufacturer: manufacturerFilter,
-          segment:      segmentFilter,
+        // List endpoint: skip, limit + filters only (no sort params)
+        res = await apiGet("/listproducts", {
+          skip: page * PAGE_SIZE,
+          limit: PAGE_SIZE,
+          category: categoryFilter || undefined,
+          brand: brandFilter || undefined,
+          manufacturer: manufacturerFilter || undefined,
+          segment: segmentFilter || undefined,
         });
       }
-      setProducts(data?.products ?? []);
-      setTotal(data?.total ?? 0);
+      const payload = res?.data ?? res;
+
+      let fetchedProducts = payload?.products ?? [];
+      
+      // Apply frontend sorting
+      fetchedProducts = sortProducts(fetchedProducts, sortBy, sortDir);
+      
+      setProducts(fetchedProducts);
+      setTotal(payload?.total ?? 0);
     } catch (err) {
       setApiError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, categoryFilter, brandFilter, manufacturerFilter, segmentFilter]);
+  }, [page, debouncedSearch, categoryFilter, brandFilter, manufacturerFilter, segmentFilter, sortBy, sortDir]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   // ── populate filter dropdowns ──────────────────────────────────────────────
   useEffect(() => {
     apiGet("/listproducts", { limit: 100 })
-      .then((data) => {
-        const p = data?.data?.products ?? [];
+      .then((res) => {
+        const p = (res?.data ?? res)?.products ?? [];
         setOpts({
           categories:    [...new Set(p.map((x) => x.category).filter(Boolean))].sort(),
           brands:        [...new Set(p.map((x) => x.brand).filter(Boolean))].sort(),
@@ -269,7 +322,10 @@ export default function MasterProductsPage() {
               totalPages={totalPages}
               loading={loading}
               apiError={apiError}
+              sortBy={sortBy}
+              sortDir={sortDir}
               onPageChange={setPage}
+              onSort={handleSort}
               onEdit={(p) => setModal(p)}
               onDelete={(p) => setDeleteTarget(p)}
               onRetry={fetchProducts}

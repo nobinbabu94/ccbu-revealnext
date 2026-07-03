@@ -2,9 +2,39 @@
 
 import { PAGE_SIZE } from "@/data/constants";
 
+const COLS = [
+  { label: "Store #",      key: "store" },
+  { label: "Store Leader", key: "store_leader" },
+  { label: "Address",      key: null },
+  { label: "City",         key: "city" },
+  { label: "State",        key: "state" },
+  { label: "District",     key: "district" },
+  { label: "Region",       key: "region" },
+  { label: "Phone",        key: null },
+  { label: "Opened",       key: "opened" },
+  { label: "Kitchen",      key: null },
+  { label: "",             key: null },
+];
 
-
-const COLS = ["Store #", "Store Leader", "Address", "City", "State", "District", "Region", "Phone", "Opened", "Kitchen", ""];
+function SortIcon({ active, dir }) {
+  if (!active) {
+    return (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.35 }}>
+        <path d="M12 5v14M5 12l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0 }} />
+      </svg>
+    );
+  }
+  return dir === "asc" ? (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M12 19V5M5 12l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export function StoresTable({
   stores,
@@ -13,7 +43,10 @@ export function StoresTable({
   totalPages,
   loading,
   apiError,
+  sortBy,
+  sortDir,
   onPageChange,
+  onSort,
   onEdit,
   onDelete,
   onRetry,
@@ -42,18 +75,29 @@ export function StoresTable({
         </div>
       ) : (
         <>
-          {/* Table — scrollable body, sticky header */}
           <div className="overflow-auto flex-1 min-h-0">
             <table className="w-full">
               <thead className="sticky top-0 z-10">
                 <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
-                  {COLS.map((h) => (
+                  {COLS.map((col) => (
                     <th
-                      key={h}
-                      style={{ color: textSec, backgroundColor: bgSub }}
-                      className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
+                      key={col.label}
+                      onClick={() => col.key && onSort(col.key)}
+                      style={{
+                        color: sortBy === col.key ? accent : textSec,
+                        backgroundColor: bgSub,
+                        cursor: col.key ? "pointer" : "default",
+                      }}
+                      className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap select-none"
                     >
-                      {h}
+                      <div className="flex items-center gap-1">
+                        {col.label}
+                        {col.key && (
+                          <span style={{ color: sortBy === col.key ? accent : textSec }}>
+                            <SortIcon active={sortBy === col.key} dir={sortDir} />
+                          </span>
+                        )}
+                      </div>
                     </th>
                   ))}
                 </tr>
@@ -62,8 +106,8 @@ export function StoresTable({
                 {loading
                   ? Array.from({ length: 8 }).map((_, i) => (
                       <tr key={i} style={{ borderColor: border }} className="border-b">
-                        {COLS.map((_, j) => (
-                          <td key={j} className="px-5 py-4">
+                        {COLS.map((col) => (
+                          <td key={col.label} className="px-5 py-4">
                             <div style={{ backgroundColor: bgSub }} className="h-4 rounded animate-pulse w-20" />
                           </td>
                         ))}
@@ -126,10 +170,7 @@ export function StoresTable({
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(row);
-                              }}
+                              onClick={(e) => { e.stopPropagation(); onEdit(row); }}
                               style={{ color: textSec }}
                               className="p-1.5 rounded hover:opacity-60 transition"
                               title="Edit"
@@ -139,21 +180,6 @@ export function StoresTable({
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                               </svg>
                             </button>
-                            {/* <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(row);
-                              }}
-                              className="p-1.5 rounded hover:opacity-60 transition text-red-500"
-                              title="Delete"
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                <path d="M10 11v6M14 11v6" />
-                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                              </svg>
-                            </button> */}
                           </div>
                         </td>
                       </tr>
@@ -162,7 +188,7 @@ export function StoresTable({
             </table>
           </div>
 
-          {/* Pagination footer — always visible at bottom */}
+          {/* Pagination footer */}
           <div style={{ borderColor: border, backgroundColor: bg }} className="border-t px-5 py-4 flex flex-wrap items-center justify-between gap-4 flex-shrink-0">
             <span style={{ color: textSec }} className="text-sm">
               {loading
@@ -174,22 +200,8 @@ export function StoresTable({
 
             {totalPages > 1 && (
               <div className="flex items-center gap-1">
-                <button
-                  onClick={() => onPageChange(0)}
-                  disabled={page === 0}
-                  style={{ borderColor: border, color: textPri }}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition"
-                >
-                  {"<<"}
-                </button>
-                <button
-                  onClick={() => onPageChange(page - 1)}
-                  disabled={page === 0}
-                  style={{ borderColor: border, color: textPri }}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition"
-                >
-                  {"<"}
-                </button>
+                <button onClick={() => onPageChange(0)} disabled={page === 0} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{"<<"}</button>
+                <button onClick={() => onPageChange(page - 1)} disabled={page === 0} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{"<"}</button>
 
                 {pageNumbers.map((p) => (
                   <button
@@ -206,22 +218,8 @@ export function StoresTable({
                   </button>
                 ))}
 
-                <button
-                  onClick={() => onPageChange(page + 1)}
-                  disabled={page >= totalPages - 1}
-                  style={{ borderColor: border, color: textPri }}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition"
-                >
-                  {">"}
-                </button>
-                <button
-                  onClick={() => onPageChange(totalPages - 1)}
-                  disabled={page >= totalPages - 1}
-                  style={{ borderColor: border, color: textPri }}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition"
-                >
-                  {">>"}
-                </button>
+                <button onClick={() => onPageChange(page + 1)} disabled={page >= totalPages - 1} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{">"}</button>
+                <button onClick={() => onPageChange(totalPages - 1)} disabled={page >= totalPages - 1} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{">>"}</button>
               </div>
             )}
           </div>

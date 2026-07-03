@@ -2,7 +2,36 @@
 
 import { PAGE_SIZE } from "@/data/constants";
 
-const COLS = ["UPC", "Item Description", "Brand", "Manufacturer", "Category", "Sub-Category", "Segment", "Size", ""];
+const COLS = [
+  { label: "UPC",              key: "upc" },
+  { label: "Item Description", key: "item_desc" },
+  { label: "Brand",            key: "brand" },
+  { label: "Manufacturer",     key: "manufacturer" },
+  { label: "Category",         key: "category" },
+  { label: "Sub-Category",     key: null },
+  { label: "Segment",          key: "segment" },
+  { label: "Size",             key: null },
+  { label: "",                 key: null },
+];
+
+function SortIcon({ active, dir }) {
+  if (!active) {
+    return (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.35 }}>
+        <path d="M12 5v14M5 12l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  return dir === "asc" ? (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M12 19V5M5 12l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export function ProductsTable({
   products,
@@ -11,13 +40,17 @@ export function ProductsTable({
   totalPages,
   loading,
   apiError,
+  sortBy,
+  sortDir,
   onPageChange,
+  onSort,
   onEdit,
   onDelete,
   onRetry,
   theme,
 }) {
   const { bg, bgSub, border, textPri, textSec, hover, accent } = theme;
+  const isDark = theme.accent === "#f87171";
 
   const pageNumbers = (() => {
     const max   = Math.min(totalPages, 5);
@@ -43,13 +76,25 @@ export function ProductsTable({
             <table className="w-full">
               <thead className="sticky top-0 z-10">
                 <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
-                  {COLS.map((h) => (
+                  {COLS.map((col) => (
                     <th
-                      key={h}
-                      style={{ color: textSec, backgroundColor: bgSub }}
-                      className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
+                      key={col.label}
+                      onClick={() => col.key && onSort(col.key)}
+                      style={{
+                        color: sortBy === col.key ? accent : textSec,
+                        backgroundColor: bgSub,
+                        cursor: col.key ? "pointer" : "default",
+                      }}
+                      className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap select-none"
                     >
-                      {h}
+                      <div className="flex items-center gap-1">
+                        {col.label}
+                        {col.key && (
+                          <span style={{ color: sortBy === col.key ? accent : textSec }}>
+                            <SortIcon active={sortBy === col.key} dir={sortDir} />
+                          </span>
+                        )}
+                      </div>
                     </th>
                   ))}
                 </tr>
@@ -58,8 +103,8 @@ export function ProductsTable({
                 {loading
                   ? Array.from({ length: 8 }).map((_, i) => (
                       <tr key={i} style={{ borderColor: border }} className="border-b">
-                        {COLS.map((_, j) => (
-                          <td key={j} className="px-5 py-4">
+                        {COLS.map((col) => (
+                          <td key={col.label} className="px-5 py-4">
                             <div style={{ backgroundColor: bgSub }} className="h-4 rounded animate-pulse w-24" />
                           </td>
                         ))}
@@ -92,7 +137,10 @@ export function ProductsTable({
                         <td className="px-5 py-3.5">
                           {row.category ? (
                             <span
-                              style={{ backgroundColor: "#eff6ff", color: "#1d4ed8" }}
+                              style={{
+                                backgroundColor: isDark ? "#1e2d45" : "#eff6ff",
+                                color: isDark ? "#93c5fd" : "#1d4ed8",
+                              }}
                               className="inline-flex px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap"
                             >
                               {row.category}

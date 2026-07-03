@@ -12,6 +12,33 @@ import { apiGet } from "@/lib/api";
 import { PAGE_SIZE } from "@/data/constants";
 import { useCallback, useEffect, useState } from "react";
 
+// ─── Helper: Frontend sorting ──────────────────────────────────────────────────
+
+function sortStores(stores, sortBy, sortDir) {
+  if (!sortBy) return stores;
+
+  const sorted = [...stores].sort((a, b) => {
+    const aVal = a[sortBy];
+    const bVal = b[sortBy];
+
+    // Handle null/undefined
+    if (aVal == null && bVal == null) return 0;
+    if (aVal == null) return 1;
+    if (bVal == null) return -1;
+
+    // String comparison
+    if (typeof aVal === "string" && typeof bVal === "string") {
+      return aVal.localeCompare(bVal);
+    }
+
+    // Numeric comparison
+    if (aVal < bVal) return -1;
+    if (aVal > bVal) return 1;
+    return 0;
+  });
+
+  return sortDir === "desc" ? sorted.reverse() : sorted;
+}
 
 export default function MasterStoresPage() {
   const { theme: mode } = useTheme();
@@ -41,11 +68,29 @@ export default function MasterStoresPage() {
   const [stateFilter,    setStateFilter]    = useState("");
   const [districtFilter, setDistrictFilter] = useState("");
   const [page, setPage] = useState(0);
+  const [sortBy, setSortBy] = useState("");
+  const [sortDir, setSortDir] = useState("asc");
 
+  // Reset page immediately when search starts (not in debounce)
   useEffect(() => {
-    const t = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(0); }, 400);
+    setPage(0);
+  }, [searchQuery]);
+
+  // Debounce the search query separately
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(searchQuery); }, 400);
     return () => clearTimeout(t);
   }, [searchQuery]);
+
+  const handleSort = (key) => {
+    if (sortBy === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortDir("asc");
+    }
+    setPage(0);
+  };
 
   const [activeTab, setActiveTab] = useState("stores");
 
@@ -65,29 +110,43 @@ export default function MasterStoresPage() {
     setLoading(true);
     setApiError(null);
     try {
-      const data = await apiGet("/liststores", {
-        skip:     page * PAGE_SIZE,
-        limit:    PAGE_SIZE,
-        search:   debouncedSearch,
-        region:   regionFilter,
-        state:    stateFilter,
-        district: districtFilter,
-      });
-      setStores(data?.stores ?? []);
-      setTotal(data?.total ?? 0);   
+      let res;
+      if (debouncedSearch) {
+        // Search API: only q parameter
+        res = await apiGet("/searchstores", {
+          q: debouncedSearch,
+        });
+      } else {
+        // List API: pagination + filters only (no sort params)
+        res = await apiGet("/liststores", {
+          skip:     page * PAGE_SIZE,
+          limit:    PAGE_SIZE,
+          region:   regionFilter,
+          state:    stateFilter,
+          district: districtFilter,
+        });
+      }
+      const payload = res?.data ?? res;
+      let fetchedStores = payload?.stores ?? [];
+      
+      // Apply frontend sorting
+      fetchedStores = sortStores(fetchedStores, sortBy, sortDir);
+      
+      setStores(fetchedStores);
+      setTotal(payload?.total ?? 0);
     } catch (err) {
       setApiError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, regionFilter, stateFilter, districtFilter]);
+  }, [page, debouncedSearch, regionFilter, stateFilter, districtFilter, sortBy, sortDir]);
 
   useEffect(() => { fetchStores(); }, [fetchStores]);
 
   useEffect(() => {
     apiGet("/liststores", { limit: 100 })
-      .then((data) => {
-        const s = data?.data?.stores ?? [];
+      .then((res) => {
+        const s = (res?.data ?? res)?.stores ?? [];
         setOpts({
           regions:   [...new Set(s.map((x) => x.region).filter(Boolean))].sort(),
           states:    [...new Set(s.map((x) => x.state).filter(Boolean))].sort(),
@@ -207,7 +266,10 @@ export default function MasterStoresPage() {
               totalPages={totalPages}
               loading={loading}
               apiError={apiError}
+              sortBy={sortBy}
+              sortDir={sortDir}
               onPageChange={setPage}
+              onSort={handleSort}
               onEdit={handleEditStore}
               onDelete={handleDeleteStore}
               onRetry={fetchStores}

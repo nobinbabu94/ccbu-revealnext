@@ -1,254 +1,300 @@
 "use client";
 
-import RoleGuard from "@/app/components/RoleGuard";
+import { FilterBar } from "@/app/components/FilterBar";
 import AppLayout from "@/app/components/layout/AppLayout";
-import App from "next/app";
-import { useState } from "react";
+import { DeleteModal } from "@/app/components/modal/DeleteModal";
+import { UserModal } from "@/app/components/modal/UserModal";
+import { UsersTable } from "@/app/components/table/UsersTable";
+import { Toast } from "@/app/components/Toast";
+import { useTheme } from "@/app/components/ThemeProvider";
+import { apiGet } from "@/lib/api";
+import { PAGE_SIZE } from "@/data/constants";
+import { useCallback, useEffect, useState } from "react";
 
-export default function UsersPage() {
-  const [search, setSearch] = useState("");
+// ─── Helper: Frontend sorting ──────────────────────────────────────────────────
 
-  const users = [
-    {
-      id: 1,
-      name: "Frank Miller",
-      email: "frank@company.com",
-      role: "Admin",
-      status: "Active",
-      lastLogin: "2025-06-04 09:15 AM",
-    },
-    {
-      id: 2,
-      name: "John Smith",
-      email: "john@company.com",
-      role: "Manager",
-      status: "Active",
-      lastLogin: "2025-06-03 04:20 PM",
-    },
-    {
-      id: 3,
-      name: "Sarah Wilson",
-      email: "sarah@company.com",
-      role: "User",
-      status: "Inactive",
-      lastLogin: "2025-05-30 11:00 AM",
-    },
-    {
-      id: 4,
-      name: "Michael Brown",
-      email: "michael@company.com",
-      role: "User",
-      status: "Pending",
-      lastLogin: "-",
-    },
-  ];
+function sortUsers(users, sortBy, sortDir) {
+  if (!sortBy) return users;
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "Active":
-        return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Active
-          </span>
-        );
+  const sorted = [...users].sort((a, b) => {
+    const aVal = a[sortBy];
+    const bVal = b[sortBy];
 
-      case "Inactive":
-        return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-            Inactive
-          </span>
-        );
+    // Handle null/undefined
+    if (aVal == null && bVal == null) return 0;
+    if (aVal == null) return 1;
+    if (bVal == null) return -1;
 
-      case "Pending":
-        return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-            Pending
-          </span>
-        );
+    // String comparison
+    if (typeof aVal === "string" && typeof bVal === "string") {
+      return aVal.localeCompare(bVal);
+    }
 
-      default:
-        return status;
+    // Numeric comparison
+    if (aVal < bVal) return -1;
+    if (aVal > bVal) return 1;
+    return 0;
+  });
+
+  return sortDir === "desc" ? sorted.reverse() : sorted;
+}
+
+export default function MasterUsersPage() {
+  const { theme: mode } = useTheme();
+  const isDark = mode === "dark";
+
+  const th = {
+    bg:       isDark ? "#191919" : "#ffffff",
+    bgSub:    isDark ? "#2a2a2a" : "#f9fafb",
+    bgDrop:   isDark ? "#242424" : "#ffffff",
+    border:   isDark ? "#333333" : "#e5e7eb",
+    textPri:  isDark ? "#e5e7eb" : "#1f2937",
+    textSec:  isDark ? "#9ca3af" : "#6b7280",
+    hover:    isDark ? "#242424" : "#f9fafb",
+    accent:   isDark ? "#f87171" : "#dc2626",
+  };
+
+  const [users, setUsers]       = useState([]);
+  const [total, setTotal]       = useState(0);
+  const [loading, setLoading]   = useState(true);
+  const [apiError, setApiError] = useState(null);
+
+  const [opts, setOpts] = useState({ roles: [] });
+
+  const [searchQuery,    setSearchQuery]    = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [roleFilter,     setRoleFilter]     = useState("");
+  const [statusFilter,   setStatusFilter]   = useState("");
+  const [page, setPage] = useState(0);
+  const [sortBy, setSortBy] = useState("");
+  const [sortDir, setSortDir] = useState("asc");
+
+  // Reset page immediately when search starts (not in debounce)
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery]);
+
+  // Debounce the search query separately
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(searchQuery); }, 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const handleSort = (key) => {
+    if (sortBy === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortDir("asc");
+    }
+    setPage(0);
+  };
+
+  const [modal, setModal]               = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [toasts, setToasts]             = useState([]);
+
+  const addToast = (message, type = "success") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+  };
+
+  const dismissToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setApiError(null);
+    try {
+      let res;
+      if (debouncedSearch) {
+        // Search API: only q parameter
+        res = await apiGet("/searchusers", {
+          q: debouncedSearch,
+        });
+      } else {
+        // List API: pagination + filters only (no sort params)
+        res = await apiGet("/users", {
+          skip:   page * PAGE_SIZE,
+          limit:  PAGE_SIZE,
+          role:   roleFilter,
+          active: statusFilter,
+        });
+      }
+      const payload = res?.data ?? res;
+      let fetchedUsers = payload?.users ?? [];
+      
+      // Apply frontend sorting
+      fetchedUsers = sortUsers(fetchedUsers, sortBy, sortDir);
+      
+      setUsers(fetchedUsers);
+      setTotal(payload?.total ?? 0);
+    } catch (err) {
+      setApiError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, debouncedSearch, roleFilter, statusFilter, sortBy, sortDir]);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  // Populate filter dropdowns
+  useEffect(() => {
+    apiGet("/users", { limit: 100 })
+      .then((res) => {
+        const u = (res?.data ?? res)?.users ?? [];
+        setOpts({
+          roles: [...new Set(u.map((x) => x.role).filter(Boolean))].sort(),
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const hasFilters = searchQuery || roleFilter || statusFilter;
+
+  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+
+  const handleFilterChange = (setter) => (e) => {
+    setter(e.target.value);
+    setPage(0);
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setRoleFilter("");
+    setStatusFilter("");
+    setPage(0);
+  };
+
+  const handleAddUser = () => setModal("add");
+
+  const handleEditUser = (user) => setModal(user);
+
+  const handleDeleteUser = (user) => setDeleteTarget(user);
+
+  const handleSaveUser = (result) => {
+    setModal(null);
+    fetchUsers();
+    addToast(result?.message ?? "User saved successfully");
+  };
+
+  const handleDeleteConfirm = (result) => {
+    setDeleteTarget(null);
+    fetchUsers();
+    addToast(result?.message ?? "User deleted successfully");
+  };
+
+  const handleToggleStatus = async (user) => {
+    try {
+      const response = await fetch(`/api/users/${user.uid}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !user.active }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to update status");
+      
+      fetchUsers();
+      const status = !user.active ? "activated" : "deactivated";
+      addToast(`User ${status} successfully`);
+    } catch (err) {
+      addToast(err.message, "error");
     }
   };
 
   return (
-    //  <RoleGuard allowedRoles={["admin"]}>
     <AppLayout>
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">
-            Users
-          </h1>
-
-          <p className="text-slate-500 mt-1">
-            Manage users and monitor account status
-          </p>
-        </div>
-
-        <button className="px-5 py-2 rounded-lg bg-[#F40009] text-white font-medium hover:bg-red-700">
-          Add User
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-2xl border p-5 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Total Users
-          </p>
-          <h2 className="text-4xl font-bold mt-2">
-            24
-          </h2>
-        </div>
-
-        <div className="bg-white rounded-2xl border p-5 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Active Users
-          </p>
-          <h2 className="text-4xl font-bold mt-2 text-emerald-600">
-            18
-          </h2>
-        </div>
-
-        <div className="bg-white rounded-2xl border p-5 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Inactive Users
-          </p>
-          <h2 className="text-4xl font-bold mt-2 text-red-600">
-            4
-          </h2>
-        </div>
-
-        <div className="bg-white rounded-2xl border p-5 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Pending Approval
-          </p>
-          <h2 className="text-4xl font-bold mt-2 text-yellow-600">
-            2
-          </h2>
-        </div>
-      </div>
-
-      {/* Users Table */}
-      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
-        {/* Toolbar */}
-        <div className="p-4 border-b flex justify-between items-center">
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            className="w-80 px-4 py-2 border rounded-lg"
-          />
-
-          {/* <button className="px-4 py-2 border rounded-lg hover:bg-slate-50">
-            Export
-          </button> */}
-        </div>
-
-        {/* Table */}
-        <div className="overflow-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b">
-              <tr>
-                <th className="text-left px-6 py-4">
-                  User
-                </th>
-
-                <th className="text-left px-6 py-4">
-                  Email
-                </th>
-
-                <th className="text-left px-6 py-4">
-                  Role
-                </th>
-
-                <th className="text-left px-6 py-4">
-                  Status
-                </th>
-{/* 
-                <th className="text-left px-6 py-4">
-                  Last Login
-                </th> */}
-
-                <th className="text-left px-6 py-4">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {users.map((user) => (
-                <tr
-                  key={user.id}
-                  className="border-b hover:bg-slate-50"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {/* <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-semibold">
-                        {user.name.charAt(0)}
-                      </div> */}
-
-                      <span className="font-medium">
-                        {user.name}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    {user.email}
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
-                      {user.role}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    {getStatusBadge(user.status)}
-                  </td>
-
-                  {/* <td className="px-6 py-4">
-                    {user.lastLogin}
-                  </td> */}
-
-                  <td className="px-6 py-4">
-                    <button className="text-blue-600 hover:text-blue-800">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t p-4 flex justify-between items-center">
-          <div className="text-sm text-slate-600">
-            Showing 1-24 of 24 users
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1 border rounded">
-              {"<"}
-            </button>
-
-            <span className="px-3 font-medium">
-              1
-            </span>
-
-            <button className="px-3 py-1 border rounded">
-              {">"}
+      <div className="h-full flex flex-col gap-4">
+        {/* Page header */}
+        <div className="flex-shrink-0">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Users</h1>
+              <p style={{ color: th.textSec }} className="mt-1 text-sm">
+                {loading ? "Loading…" : `${total} user${total !== 1 ? "s" : ""} total`}
+              </p>
+            </div>
+            <button
+              onClick={handleAddUser}
+              style={{ backgroundColor: th.accent }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add User
             </button>
           </div>
         </div>
+
+        {/* Filter and Table */}
+        <FilterBar
+          searchQuery={searchQuery}
+          searchPlaceholder="Search users by name or email…"
+          dropdowns={[
+            { 
+              allLabel: "All Roles", 
+              value: roleFilter, 
+              options: opts.roles, 
+              onChange: handleFilterChange(setRoleFilter) 
+            },
+            { 
+              allLabel: "All Statuses", 
+              value: statusFilter, 
+              options: ["active", "inactive"], 
+              onChange: handleFilterChange(setStatusFilter) 
+            },
+          ]}
+          hasFilters={hasFilters}
+          onSearchChange={handleSearchChange}
+          onClearFilters={handleClearFilters}
+          theme={th}
+        />
+
+        <UsersTable
+          users={users}
+          total={total}
+          page={page}
+          totalPages={totalPages}
+          loading={loading}
+          apiError={apiError}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onPageChange={setPage}
+          onSort={handleSort}
+          onEdit={handleEditUser}
+          onDelete={handleDeleteUser}
+          onToggleStatus={handleToggleStatus}
+          onRetry={fetchUsers}
+          theme={th}
+        />
       </div>
+
+      {/* Modals */}
+      {modal && (
+        <UserModal
+          user={modal === "add" ? null : modal}
+          onClose={() => setModal(null)}
+          onSaved={handleSaveUser}
+          theme={th}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteModal
+          displayName={`${deleteTarget.fname} ${deleteTarget.lname}`}
+          detailLine1={deleteTarget.email}
+          detailLine2={deleteTarget.role || "User"}
+          apiPath={`/users/${deleteTarget.uid}`}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={handleDeleteConfirm}
+          theme={th}
+        />
+      )}
+
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </AppLayout>
-    // </RoleGuard>
   );
 }
