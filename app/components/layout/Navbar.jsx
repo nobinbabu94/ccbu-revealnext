@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "../ThemeProvider";
 import { useAuth } from "../AuthProvider";
+import { apiGet } from "@/lib/api";
 
 export default function Navbar({ onToggleSidebar }) {
   const pathname = usePathname();
@@ -19,7 +20,31 @@ export default function Navbar({ onToggleSidebar }) {
   const isRetailerPlanogram = pathname?.startsWith("/retailerPlanogram");
   const parts = pathname?.split("/") || [];
   const retailerId = parts[2];
-  const retailerName = retailerId ? `Retailer ${retailerId}` : "Retailer Planogram";
+
+  const [retailerName, setRetailerName] = useState("Retailer Planogram");
+
+  useEffect(() => {
+    if (!isRetailerPlanogram || !retailerId) {
+      setRetailerName("Retailer Planogram");
+      return;
+    }
+
+    let cancelled = false;
+    setRetailerName(`Retailer ${retailerId}`);
+
+    apiGet(`/retailers/${retailerId}`)
+      .then((res) => {
+        if (cancelled) return;
+        const retailer = res?.data ?? res?.retailer ?? res;
+        const name = retailer?.name ?? retailer?.retailer_name;
+        if (name) setRetailerName(name);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isRetailerPlanogram, retailerId]);
 
   const handleMouseEnter = () => {
     clearTimeout(hoverTimeoutRef.current);
