@@ -25,7 +25,7 @@ import { useCallback, useEffect, useState } from "react";
 
 const TABS = [
   { key: "products", label: "Master Products" },
-  { key: "upload",   label: "Upload Master Products" },
+  { key: "upload", label: "Upload Master Products" },
 ];
 
 // ─── Helper: Frontend sorting ──────────────────────────────────────────────────
@@ -143,7 +143,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr>
-                {["File Name", "Uploaded At", "Status", "Actions"].map((col) => (
+                {["Id", "File Name", "Uploaded At", "Status", "Actions"].map((col) => (
                   // "Week", "Failed Rows"
                   <th key={col} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ backgroundColor: bgSub, color: textSec }}>
                     {col}
@@ -169,6 +169,9 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
                   >
+                    <td className="px-5 py-3 font-medium max-w-[260px] truncate" style={{ color: textPri }} title={row.file_name ?? row.filename}>
+                      {row.requestid ?? row.requestid ?? "-"}
+                    </td>
                     <td className="px-5 py-3 font-medium max-w-[260px] truncate" style={{ color: textPri }} title={row.file_name ?? row.filename}>
                       {row.file_name ?? row.filename ?? "-"}
                     </td>
@@ -231,35 +234,35 @@ export default function MasterProductsPage() {
   const isDark = mode === "dark";
 
   const th = {
-    bg:      isDark ? "#191919" : "#ffffff",
-    bgSub:   isDark ? "#2a2a2a" : "#f9fafb",
-    bgDrop:  isDark ? "#242424" : "#ffffff",
-    border:  isDark ? "#333333" : "#e5e7eb",
+    bg: isDark ? "#191919" : "#ffffff",
+    bgSub: isDark ? "#2a2a2a" : "#f9fafb",
+    bgDrop: isDark ? "#242424" : "#ffffff",
+    border: isDark ? "#333333" : "#e5e7eb",
     textPri: isDark ? "#e5e7eb" : "#1f2937",
     textSec: isDark ? "#9ca3af" : "#6b7280",
-    hover:   isDark ? "#242424" : "#f9fafb",
-    accent:  isDark ? "#f87171" : "#dc2626",
+    hover: isDark ? "#242424" : "#f9fafb",
+    accent: isDark ? "#f87171" : "#dc2626",
   };
 
   // ── tab ────────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("products");
 
   // ── products state ─────────────────────────────────────────────────────────
-  const [products, setProducts]   = useState([]);
-  const [total, setTotal]         = useState(0);
-  const [loading, setLoading]     = useState(true);
-  const [apiError, setApiError]   = useState(null);
+  const [products, setProducts] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
 
   // ── filter options ─────────────────────────────────────────────────────────
   const [opts, setOpts] = useState({ categories: [], brands: [], manufacturers: [], segments: [] });
 
   // ── filters ────────────────────────────────────────────────────────────────
-  const [searchQuery,     setSearchQuery]     = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [categoryFilter,     setCategoryFilter]     = useState("");
-  const [brandFilter,        setBrandFilter]        = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [brandFilter, setBrandFilter] = useState("");
   const [manufacturerFilter, setManufacturerFilter] = useState("");
-  const [segmentFilter,      setSegmentFilter]      = useState("");
+  const [segmentFilter, setSegmentFilter] = useState("");
   const [page, setPage] = useState(0);
   const [sortBy, setSortBy] = useState("");
   const [sortDir, setSortDir] = useState("asc");
@@ -281,7 +284,7 @@ export default function MasterProductsPage() {
   }, [searchQuery]);
 
   // ── modals ─────────────────────────────────────────────────────────────────
-  const [modal,        setModal]        = useState(null);
+  const [modal, setModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   // ── toasts ─────────────────────────────────────────────────────────────────
@@ -320,10 +323,10 @@ export default function MasterProductsPage() {
       const payload = res?.data ?? res;
 
       let fetchedProducts = payload?.products ?? [];
-      
+
       // Apply frontend sorting
       fetchedProducts = sortProducts(fetchedProducts, sortBy, sortDir);
-      
+
       setProducts(fetchedProducts);
       setTotal(payload?.total ?? 0);
     } catch (err) {
@@ -342,13 +345,13 @@ export default function MasterProductsPage() {
       .then((res) => {
         const p = (res?.data ?? res)?.products ?? [];
         setOpts({
-          categories:    [...new Set(p.map((x) => x.category).filter(Boolean))].sort(),
-          brands:        [...new Set(p.map((x) => x.brand).filter(Boolean))].sort(),
+          categories: [...new Set(p.map((x) => x.category).filter(Boolean))].sort(),
+          brands: [...new Set(p.map((x) => x.brand).filter(Boolean))].sort(),
           manufacturers: [...new Set(p.map((x) => x.manufacturer).filter(Boolean))].sort(),
-          segments:      [...new Set(p.map((x) => x.segment).filter(Boolean))].sort(),
+          segments: [...new Set(p.map((x) => x.segment).filter(Boolean))].sort(),
         });
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // ── derived ────────────────────────────────────────────────────────────────
@@ -437,10 +440,10 @@ export default function MasterProductsPage() {
               searchQuery={searchQuery}
               searchPlaceholder="Search products…"
               dropdowns={[
-                { allLabel: "All Categories",     value: categoryFilter,     options: opts.categories,    onChange: handleFilterChange(setCategoryFilter) },
-                { allLabel: "All Brands",         value: brandFilter,        options: opts.brands,        onChange: handleFilterChange(setBrandFilter) },
-                { allLabel: "All Manufacturers",  value: manufacturerFilter, options: opts.manufacturers, onChange: handleFilterChange(setManufacturerFilter) },
-                { allLabel: "All Segments",       value: segmentFilter,      options: opts.segments,      onChange: handleFilterChange(setSegmentFilter) },
+                { allLabel: "All Categories", value: categoryFilter, options: opts.categories, onChange: handleFilterChange(setCategoryFilter) },
+                { allLabel: "All Brands", value: brandFilter, options: opts.brands, onChange: handleFilterChange(setBrandFilter) },
+                { allLabel: "All Manufacturers", value: manufacturerFilter, options: opts.manufacturers, onChange: handleFilterChange(setManufacturerFilter) },
+                { allLabel: "All Segments", value: segmentFilter, options: opts.segments, onChange: handleFilterChange(setSegmentFilter) },
               ]}
               hasFilters={hasFilters}
               onSearchChange={handleSearchChange}
