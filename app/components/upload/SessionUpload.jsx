@@ -43,6 +43,8 @@ export function normalizeUploadStatus(value) {
   if (["success", "succeeded", "completed", "complete"].includes(status)) return "success";
   if (["failed", "failure", "error"].includes(status)) return "failed";
   if (["preview"].includes(status)) return "preview";
+  if (["cancelled", "canceled"].includes(status)) return "cancelled";
+  if (["processing"].includes(status)) return "processing";
   return "pending";
 }
 
@@ -66,9 +68,11 @@ export function getPreviewColumns(rows) {
 export function StatusBadge({ status }) {
   const normalized = normalizeUploadStatus(status);
   const config = {
-    success: { bg: "#dcfce7", color: "#15803d", label: "Success" },
+    success: { bg: "#dcfce7", color: "#15803d", label: "Complete" },
     failed: { bg: "#fee2e2", color: "#dc2626", label: "Failed" },
     preview: { bg: "#dbeafe", color: "#1d4ed8", label: "Preview" },
+    cancelled: { bg: "#f3f4f6", color: "#6b7280", label: "Cancelled" },
+    processing: { bg: "#fef3c7", color: "#b45309", label: "Processing" },
     pending: { bg: "#fef9c3", color: "#b45309", label: "Pending" },
   }[normalized];
 
@@ -353,10 +357,12 @@ export function SessionUploadModal({
 
   const canClose = phase === "ready" || phase === "polling" || phase === "error";
 
-  const closeModal = useCallback(() => {
+  const closeModal = useCallback(async () => {
     if (!canClose) return;
     if (phase === "ready" && session?.requestid) {
-      apiPut(`/retailers/${retailerId}/uploads/${session.requestid}`, { status: "Cancelled" }).catch(() => {});
+      try {
+        await apiPut(`/retailers/${retailerId}/uploads/${session.requestid}`, { status: "Cancelled" });
+      } catch {}
     }
     onClose();
     fetchHistory();
