@@ -335,7 +335,7 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
 
 // ─── Upload modal ─────────────────────────────────────────────────────────────
 
-const PROCESS_ON_PENDING_FILETYPES = ["SALES", "MKT"];
+const PROCESS_ON_PENDING_FILETYPES = ["SALES", "MKT", "POG"];
 
 export function SessionUploadModal({
   retailerId,
