@@ -44,10 +44,16 @@ function UploadTypeBadge({ filetype }) {
 
 // ─── Store/Planogram session upload section (mirrors Products upload flow) ────
 
+const HISTORY_TABS = [
+  { key: "STR", label: "Store" },
+  { key: "POG", label: "Planogram" },
+];
+
 function StoreSessionUploadSection({ retailerId, theme, addToast }) {
   const { bg, bgSub, border, textPri, textSec, accent, hover } = theme;
   const [activeUploadType, setActiveUploadType] = useState(null);
   const [previewUpload, setPreviewUpload] = useState(null);
+  const [historyTab, setHistoryTab] = useState("STR");
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
 
@@ -55,16 +61,16 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
     if (!retailerId) return;
 
     setHistoryLoading(true);
-    apiGet(`/retailers/${retailerId}/uploads`)
+    apiGet(`/retailers/${retailerId}/uploads/${historyTab}`)
       .then((res) => {
         const rows = extractUploadRows(res)
-          .filter((row) => Object.keys(UPLOAD_TYPE_LABELS).includes(row.filetype ?? row.file_type))
+          .filter((row) => (row.filetype ?? row.file_type) === historyTab)
           .sort((a, b) => new Date(b.created_at ?? b.uploaded_at ?? 0) - new Date(a.created_at ?? a.uploaded_at ?? 0));
         setHistory(rows);
       })
       .catch(() => setHistory([]))
       .finally(() => setHistoryLoading(false));
-  }, [retailerId]);
+  }, [retailerId, historyTab]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
@@ -221,6 +227,23 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
           <button onClick={fetchHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
             Refresh
           </button>
+        </div>
+
+        <div className="px-5 pt-3 flex border-b flex-shrink-0" style={{ borderColor: border }}>
+          {HISTORY_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setHistoryTab(tab.key)}
+              className="px-4 py-2 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px cursor-pointer"
+              style={{
+                color: historyTab === tab.key ? accent : textSec,
+                borderBottomColor: historyTab === tab.key ? accent : "transparent",
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         <div className="overflow-auto flex-1 min-h-0">

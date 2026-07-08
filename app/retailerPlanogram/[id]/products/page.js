@@ -67,7 +67,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
     if (!retailerId) return;
 
     setHistoryLoading(true);
-    apiGet(`/retailers/${retailerId}/uploads/prd`)
+    apiGet(`/retailers/${retailerId}/uploads/PRD`)
       .then((res) => {
         const rows = extractUploadRows(res)
           // .filter((row) => (row.filetype ?? row.file_type) === "PRD")

@@ -31,6 +31,11 @@ const FILE_TYPES = [
   { value: "MKT", label: "Nielsen Market Data" },
 ];
 
+const HISTORY_TABS = [
+  { key: "SALES", label: "Weekly Sales History" },
+  { key: "MKT", label: "Nielsen Market Data History" },
+];
+
 function UploadTypeBadge({ filetype }) {
   const colors = UPLOAD_TYPE_BADGE_COLORS[filetype] ?? { bg: "#f3f4f6", color: "#6b7280" };
   const label = UPLOAD_TYPE_LABELS[filetype] ?? filetype ?? "-";
@@ -49,6 +54,7 @@ export default function WeeklySalesUploadPage() {
   const [selectedFileType, setSelectedFileType] = useState("");
   const [activeUploadType, setActiveUploadType] = useState(null);
   const [validating, setValidating] = useState(false);
+  const [historyTab, setHistoryTab] = useState("SALES");
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [toasts, setToasts] = useState([]);
@@ -65,16 +71,16 @@ export default function WeeklySalesUploadPage() {
     if (!retailerId) return;
 
     setHistoryLoading(true);
-    apiGet(`/retailers/${retailerId}/uploads`)
+    apiGet(`/retailers/${retailerId}/uploads/${historyTab}`)
       .then((res) => {
         const rows = extractUploadRows(res)
-          .filter((row) => Object.keys(UPLOAD_TYPE_LABELS).includes(row.filetype ?? row.file_type))
+          .filter((row) => (row.filetype ?? row.file_type) === historyTab)
           .sort((a, b) => new Date(b.created_at ?? b.uploaded_at ?? 0) - new Date(a.created_at ?? a.uploaded_at ?? 0));
         setHistory(rows);
       })
       .catch(() => setHistory([]))
       .finally(() => setHistoryLoading(false));
-  }, [retailerId]);
+  }, [retailerId, historyTab]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
@@ -232,6 +238,23 @@ export default function WeeklySalesUploadPage() {
             <button onClick={fetchHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
               Refresh
             </button>
+          </div>
+
+          <div className="px-5 pt-3 flex border-b flex-shrink-0" style={{ borderColor: border }}>
+            {HISTORY_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setHistoryTab(tab.key)}
+                className="px-4 py-2 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px cursor-pointer"
+                style={{
+                  color: historyTab === tab.key ? accent : textSec,
+                  borderBottomColor: historyTab === tab.key ? accent : "transparent",
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           <div className="overflow-x-auto">
