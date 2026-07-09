@@ -11,6 +11,7 @@ import {
   SessionUploadModal,
 } from "@/app/components/upload/SessionUpload";
 import { ValidationModal, extractValidationRows } from "@/app/components/modal/ValidationModal";
+import { PublishModal } from "@/app/components/modal/PublishModal";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -106,6 +107,7 @@ export default function WeeklySalesUploadPage() {
   const [selectedFileType, setSelectedFileType] = useState("");
   const [activeUploadType, setActiveUploadType] = useState(null);
   const [validateOpen, setValidateOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
   const [historyTab, setHistoryTab] = useState("SALES");
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -214,6 +216,7 @@ export default function WeeklySalesUploadPage() {
 
   const handleUploadClose = useCallback(() => {
     setActiveUploadType(null);
+    fetchUnpublishedWeek()
   }, []);
 
   const handleUploadError = useCallback((message) => {
@@ -233,7 +236,21 @@ export default function WeeklySalesUploadPage() {
 
   const handleValidateClose = useCallback(() => {
     setValidateOpen(false);
+    fetchUnpublishedWeek()
   }, []);
+
+  const handlePublishClick = useCallback(() => {
+    setPublishOpen(true);
+  }, []);
+
+  const handlePublishClose = useCallback(() => {
+    setPublishOpen(false);
+    fetchUnpublishedWeek()
+  }, []);
+
+  const handlePublishSuccess = useCallback(() => {
+    fetchUnpublishedWeek();
+  }, [fetchUnpublishedWeek]);
 
   const today = new Date();
   const weekNumber = getISOWeek(today);
@@ -365,12 +382,13 @@ export default function WeeklySalesUploadPage() {
           </div>
 
           {/* PUBLISH CARD */}
-          <div style={{ backgroundColor: bg, borderColor: border }} className="lg:basis-1/2 lg:max-w-1/2 p-4">
-            <h2 style={{ color: textPri }} className="text-base font-semibold mb-1">Publish</h2>
-            <p style={{ color: textSec }} className="text-sm mb-6">
-              Publish the current fiscal week once all data is ready.
-            </p>
-
+          <div style={{ backgroundColor: bg, borderColor: border }} className="lg:basis-1/2 lg:max-w-1/2 p-4 justify-between flex flex-col">
+            <div>
+              <h2 style={{ color: textPri }} className="text-base font-semibold mb-1">Publish</h2>
+              <p style={{ color: textSec }} className="text-sm mb-6">
+                Publish the current fiscal week once all data is ready.
+              </p>
+            </div>
             <div className="flex items-center gap-8 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
               <div>
                 <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
@@ -389,22 +407,27 @@ export default function WeeklySalesUploadPage() {
                 )}
               </div>
             </div>
-
-            <button
-              disabled={true}
-              style={{
-                backgroundColor: isDark ? "#333" : "#e5e7eb",
-                color: textSec,
-              }}
-              className="flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 mt-auto"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <path d="M4 12l6 6L20 6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Publish
-            </button>
-          </div>
-
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handlePublishClick}
+                disabled={publishOpen}
+                style={{
+                  backgroundColor: publishOpen ? (isDark ? "#333" : "#e5e7eb") : accent,
+                  color: publishOpen ? textSec : "#fff",
+                }}
+                className="flex items-center cursor-pointer justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 mt-auto"
+              >
+                {publishOpen ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <path d="M4 12l6 6L20 6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                {publishOpen ? "Publishing..." : "Publish"}
+              </button>
+            </div>
+          </div >
         </div>
 
         {/* TOP-LEVEL TABS — now just Upload History / Validation History */}
@@ -645,6 +668,15 @@ export default function WeeklySalesUploadPage() {
           retailerId={retailerId}
           theme={{ bg, bgSub, border, textPri, textSec, accent }}
           onClose={handleValidateClose}
+        />
+      )}
+
+      {publishOpen && (
+        <PublishModal
+          retailerId={retailerId}
+          theme={{ bg, bgSub, border, textPri, textSec, accent }}
+          onClose={handlePublishClose}
+          onSuccess={handlePublishSuccess}
         />
       )}
 
