@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useTheme } from "../ThemeProvider";
+import useAppTheme from "@/app/hooks/useAppTheme";
 import { useAuth } from "../AuthProvider";
 import { apiGet } from "@/lib/api";
 
 export default function Navbar({ onToggleSidebar }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, isDark, accent, bg: headerBg, border: borderColor, textPri: textPrimary, textSec: textSecondary, hover: hoverBg, bgSub: buttonActiveBg, bgDrop: dropdownBg } = useAppTheme();
   const { logout } = useAuth();
 
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -66,17 +66,8 @@ export default function Navbar({ onToggleSidebar }) {
     router.push("/login");
   };
 
-  // Theme-aware colors
-  const isDark = theme === "dark";
-  const headerBg = isDark ? "#191919" : "#ffffff";
-  const borderColor = isDark ? "#333333" : "#e5e7eb";
-  const textPrimary = isDark ? "#e5e7eb" : "#1f2937";
-  const textSecondary = isDark ? "#9ca3af" : "#6b7280";
-  const hoverBg = isDark ? "#333333" : "#f3f4f6";
-  const buttonActiveBg = isDark ? "#2a2a2a" : "#f3f4f6";
-  const dropdownBg = isDark ? "#242424" : "#ffffff";
+  // Navbar-specific derived colors (not part of the shared theme palette)
   const dropdownBorder = isDark ? "#3f3f3f" : "#e5e7eb";
-  const headerBgDrop = isDark ? "#2a2a2a" : "#f9fafb";
   const menuItemHover = isDark ? "#3f3f3f" : "#f3f4f6";
   const redText = isDark ? "#f87171" : "#dc2626";
 
@@ -122,7 +113,7 @@ export default function Navbar({ onToggleSidebar }) {
                 color: textSecondary,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#F40009";
+                e.currentTarget.style.color = accent;
                 e.currentTarget.style.backgroundColor = hoverBg;
               }}
               onMouseLeave={(e) => {

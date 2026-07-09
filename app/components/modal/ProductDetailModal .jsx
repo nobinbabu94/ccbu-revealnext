@@ -29,8 +29,7 @@ function Section({ title, textSec, border, children }) {
 export function ProductDetailModal({ product, theme, onClose, onEdit }) {
   if (!product) return null;
 
-  const { bg, bgSub, border, textPri, textSec, accent } = theme;
-  const isDark = theme.accent === "#f87171";
+  const { bg, bgSub, border, textPri, textSec, accent, isDark } = theme;
 
   const row = (label, key) => (
     <Row key={key} label={label} value={product[key]} textSec={textSec} textPri={textPri} />

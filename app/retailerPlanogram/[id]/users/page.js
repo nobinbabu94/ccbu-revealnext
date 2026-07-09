@@ -6,7 +6,7 @@ import { DeleteModal } from "@/app/components/modal/DeleteModal";
 import { UserModal } from "@/app/components/modal/UserModal";
 import { UsersTable } from "@/app/components/table/UsersTable";
 import { Toast } from "@/app/components/Toast";
-import { useTheme } from "@/app/components/ThemeProvider";
+import useAppTheme from "@/app/hooks/useAppTheme";
 import { apiGet, apiPut } from "@/lib/api";
 import { PAGE_SIZE } from "@/data/constants";
 import { useParams } from "next/navigation";
@@ -43,19 +43,7 @@ function sortUsers(users, sortBy, sortDir) {
 export default function MasterUsersPage() {
   const params = useParams();
   const retailerId = params?.id;
-  const { theme: mode } = useTheme();
-  const isDark = mode === "dark";
-
-  const th = {
-    bg: isDark ? "#191919" : "#ffffff",
-    bgSub: isDark ? "#2a2a2a" : "#f9fafb",
-    bgDrop: isDark ? "#242424" : "#ffffff",
-    border: isDark ? "#333333" : "#e5e7eb",
-    textPri: isDark ? "#e5e7eb" : "#1f2937",
-    textSec: isDark ? "#9ca3af" : "#6b7280",
-    hover: isDark ? "#242424" : "#f9fafb",
-    accent: isDark ? "#f87171" : "#dc2626",
-  };
+  const th = useAppTheme();
 
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);

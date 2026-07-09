@@ -6,7 +6,7 @@ import { ProductsTable } from "@/app/components/table/ProductsTable";
 import { ProductModal } from "@/app/components/modal/ProductModal";
 import { DeleteModal } from "@/app/components/modal/DeleteModal";
 import { Toast } from "@/app/components/Toast";
-import { useTheme } from "@/app/components/ThemeProvider";
+import useAppTheme from "@/app/hooks/useAppTheme";
 import { apiGet } from "@/lib/api";
 import { PAGE_SIZE, url } from "@/data/constants";
 import {
@@ -231,19 +231,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
 export default function MasterProductsPage() {
   const params = useParams();
   const retailerId = params?.id;
-  const { theme: mode } = useTheme();
-  const isDark = mode === "dark";
-
-  const th = {
-    bg: isDark ? "#191919" : "#ffffff",
-    bgSub: isDark ? "#2a2a2a" : "#f9fafb",
-    bgDrop: isDark ? "#242424" : "#ffffff",
-    border: isDark ? "#333333" : "#e5e7eb",
-    textPri: isDark ? "#e5e7eb" : "#1f2937",
-    textSec: isDark ? "#9ca3af" : "#6b7280",
-    hover: isDark ? "#242424" : "#f9fafb",
-    accent: isDark ? "#f87171" : "#dc2626",
-  };
+  const th = useAppTheme();
 
   // ── tab ────────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("products");

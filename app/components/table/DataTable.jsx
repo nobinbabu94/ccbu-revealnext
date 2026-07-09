@@ -27,8 +27,7 @@ const COLUMNS = [
 ];
 
 export default function DataTable({ rows, loading, theme }) {
-  const { bg, bgSub, border, textSec, hover, accent } = theme;
-  const isDark = theme.accent === "#f87171";
+  const { bg, bgSub, border, textSec, hover, accent, isDark } = theme;
 
   return (
     <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden">

@@ -52,8 +52,7 @@ export function ProductsTable({
   onRetry,
   theme,
 }) {
-  const { bg, bgSub, border, textPri, textSec, hover, accent } = theme;
-  const isDark = theme.accent === "#f87171";
+  const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = theme;
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const pageNumbers = (() => {

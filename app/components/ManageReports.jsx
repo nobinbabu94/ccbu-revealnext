@@ -3,21 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import DataTable from "./table/DataTable";
 import { apiGet } from "@/lib/api";
-import { useTheme } from "@/app/components/ThemeProvider";
+import useAppTheme from "@/app/hooks/useAppTheme";
 
 export default function ManageReports() {
-  const { theme: mode } = useTheme();
-  const isDark = mode === "dark";
-
-  const th = {
-    bg:      isDark ? "#191919" : "#ffffff",
-    bgSub:   isDark ? "#2a2a2a" : "#f9fafb",
-    border:  isDark ? "#333333" : "#e5e7eb",
-    textPri: isDark ? "#e5e7eb" : "#1f2937",
-    textSec: isDark ? "#9ca3af" : "#6b7280",
-    hover:   isDark ? "#242424" : "#f9fafb",
-    accent:  isDark ? "#f87171" : "#dc2626",
-  };
+  const th = useAppTheme();
   const { bg, bgSub, border, textPri, textSec, accent } = th;
 
   const [retailers, setRetailers] = useState([]);

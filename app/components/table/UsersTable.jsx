@@ -187,7 +187,7 @@ export function UsersTable({
                                         aria-busy={isUpdating}
                                         className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-70"
                                         style={{
-                                            backgroundColor: isActive ? "#16a34a" : "#dc2626",
+                                            backgroundColor: isActive ? "#334155" : "#D1D5DB",
                                         }}
                                     >
                                         {isUpdating ? (

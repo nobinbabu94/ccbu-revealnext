@@ -1,7 +1,7 @@
 "use client";
 
 import AppLayout from "@/app/components/layout/AppLayout";
-import { useTheme } from "@/app/components/ThemeProvider";
+import useAppTheme from "@/app/hooks/useAppTheme";
 import { Toast } from "@/app/components/Toast";
 import { apiGet } from "@/lib/api";
 import {
@@ -50,7 +50,7 @@ function UploadTypeBadge({ filetype }) {
 export default function WeeklySalesUploadPage() {
   const params = useParams();
   const retailerId = params?.id;
-  const { theme } = useTheme();
+  const { isDark, bg, bgSub, bgDrop, border, textPri, textSec, hover, accent } = useAppTheme();
 
   const [selectedFileType, setSelectedFileType] = useState("");
   const [activeUploadType, setActiveUploadType] = useState(null);
@@ -136,16 +136,6 @@ export default function WeeklySalesUploadPage() {
 
   const dataWeekValue = unpublishedWeekLoading ? "-" : (unpublishedWeek?.dataweek ?? "-");
   const fiscalWeekValue = unpublishedWeekLoading ? "-" : (unpublishedWeek?.fiscal_week ?? "-");
-
-  const isDark = theme === "dark";
-  const bg = isDark ? "#191919" : "#ffffff";
-  const bgSub = isDark ? "#2a2a2a" : "#f9fafb";
-  const bgDrop = isDark ? "#242424" : "#ffffff";
-  const border = isDark ? "#333333" : "#e5e7eb";
-  const textPri = isDark ? "#e5e7eb" : "#1f2937";
-  const textSec = isDark ? "#9ca3af" : "#6b7280";
-  const hover = isDark ? "#333333" : "#f3f4f6";
-  const accent = isDark ? "#f87171" : "#dc2626";
 
   const uploadModalConfig = {
     SALES: { filename: "retailerSales.xlsx", title: "Upload Weekly Sales" },

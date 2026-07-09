@@ -7,7 +7,7 @@ import { StoreModal } from "@/app/components/modal/StoreModal";
 import { StoresTable } from "@/app/components/table/StoresTable";
 import { Toast } from "@/app/components/Toast";
 import { UploadStoresTab } from "@/app/components/UploadStoresTab";
-import { useTheme } from "@/app/components/ThemeProvider";
+import useAppTheme from "@/app/hooks/useAppTheme";
 import { apiGet } from "@/lib/api";
 import { CARDS, PAGE_SIZE, url } from "@/data/constants";
 import {
@@ -370,19 +370,7 @@ function sortStores(stores, sortBy, sortDir) {
 export default function MasterStoresPage() {
   const params = useParams();
   const retailerId = params?.id;
-  const { theme: mode } = useTheme();
-  const isDark = mode === "dark";
-
-  const th = {
-    bg: isDark ? "#191919" : "#ffffff",
-    bgSub: isDark ? "#2a2a2a" : "#f9fafb",
-    bgDrop: isDark ? "#242424" : "#ffffff",
-    border: isDark ? "#333333" : "#e5e7eb",
-    textPri: isDark ? "#e5e7eb" : "#1f2937",
-    textSec: isDark ? "#9ca3af" : "#6b7280",
-    hover: isDark ? "#242424" : "#f9fafb",
-    accent: isDark ? "#f87171" : "#dc2626",
-  };
+  const th = useAppTheme();
 
   const [stores, setStores] = useState([]);
   const [total, setTotal] = useState(0);

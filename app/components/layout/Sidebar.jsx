@@ -3,10 +3,12 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import useAppTheme from "@/app/hooks/useAppTheme";
 
 export default function Sidebar({ isOpen }) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState([]);
+  const { bg, border, textPri, textSec, hover, accent } = useAppTheme();
 
   const getNavItems = () => {
     if (pathname?.startsWith("/retailerPlanogram")) {
@@ -99,18 +101,13 @@ export default function Sidebar({ isOpen }) {
       className={`
         h-screen
         border-r
-        border-gray-200
-        dark:border-gray-800
-        bg-white
-        dark:bg-[#191919]
-        text-gray-800
-        dark:text-gray-100
         transition-all
         duration-300
         flex
         flex-col
         ${isOpen ? "w-64" : "w-20"}
       `}
+      style={{ backgroundColor: bg, borderColor: border, color: textPri }}
     >
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto mt-4 px-3 py-4 space-y-2" role="navigation" aria-label="Main navigation">
@@ -140,13 +137,21 @@ export default function Sidebar({ isOpen }) {
                       );
                     }
                   }}
-                  className={`
-                    group relative w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 cursor-pointer
-                    ${active
-                      ? "text-[#F40009] bg-[#F40009]/5 dark:bg-[#F40009]/10"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50"
-                    }
-                  `}
+                  className="group relative w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 cursor-pointer"
+                  style={{
+                    color: active ? accent : textSec,
+                    backgroundColor: active ? `${accent}1a` : "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (active) return;
+                    e.currentTarget.style.color = textPri;
+                    e.currentTarget.style.backgroundColor = hover;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (active) return;
+                    e.currentTarget.style.color = textSec;
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
                 >
                   <span className="w-5 h-5 flex-shrink-0">{item.icon}</span>
                   {isOpen && (
@@ -174,14 +179,23 @@ export default function Sidebar({ isOpen }) {
                           key={child.label}
                           href={child.href}
                           aria-current={childActive ? "page" : undefined}
-                          className={`
-                            flex items-center gap-3 px-3 py-2.5 rounded-lg text-base transition-all duration-200
-                            border-l-2
-                            ${childActive
-                              ? "border-l-[#F40009] text-[#F40009] bg-[#F40009]/5 dark:bg-[#F40009]/10 font-medium ml-2"
-                              : "border-l-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 ml-2"
-                            }
-                          `}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-base transition-all duration-200 border-l-2 ml-2"
+                          style={{
+                            borderLeftColor: childActive ? accent : "transparent",
+                            color: childActive ? accent : textSec,
+                            backgroundColor: childActive ? `${accent}1a` : "transparent",
+                            fontWeight: childActive ? 500 : 400,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (childActive) return;
+                            e.currentTarget.style.color = textPri;
+                            e.currentTarget.style.backgroundColor = hover;
+                          }}
+                          onMouseLeave={(e) => {
+                            if (childActive) return;
+                            e.currentTarget.style.color = textSec;
+                            e.currentTarget.style.backgroundColor = "transparent";
+                          }}
                         >
                           <span className="w-2 h-2 ml-4" />
                           <span >{child.label}</span>
@@ -199,14 +213,22 @@ export default function Sidebar({ isOpen }) {
               key={item.label}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`
-                flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200
-                border-l-2
-                ${active
-                  ? "border-l-[#F40009] text-[#F40009] bg-[#F40009]/5 dark:bg-[#F40009]/10 font-medium"
-                  : "border-l-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50"
-                }
-              `}
+              className="flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 border-l-2"
+              style={{
+                borderLeftColor: active ? accent : "transparent",
+                color: active ? accent : textSec,
+                backgroundColor: active ? `${accent}1a` : "transparent",
+              }}
+              onMouseEnter={(e) => {
+                if (active) return;
+                e.currentTarget.style.color = textPri;
+                e.currentTarget.style.backgroundColor = hover;
+              }}
+              onMouseLeave={(e) => {
+                if (active) return;
+                e.currentTarget.style.color = textSec;
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
             >
               <span className="w-5 h-5 flex-shrink-0">{item.icon}</span>
               {isOpen && <span className="text-base font-medium">{item.label}</span>}
