@@ -278,6 +278,16 @@ export default function WeeklySalesUploadPage() {
 
   const isProcessing = status?.toUpperCase() === "PROCESSING";
 
+  const refreshUploadHistory = () => {
+    fetchHistory();
+    fetchUnpublishedWeek()
+  }
+
+  const refreshValidationHistory = () => {
+
+    fetchUnpublishedWeek()
+    fetchValidationHistory()
+  }
 
   return (
     <AppLayout>
@@ -425,8 +435,8 @@ export default function WeeklySalesUploadPage() {
                 ) : (
                   <span
                     className={`text-sm font-bold px-2 py-1 rounded-full ${isProcessing
-                        ? "bg-yellow-100 text-yellow-800"
-                        : ""
+                      ? "bg-yellow-100 text-yellow-800"
+                      : ""
                       }`}
                     style={!isProcessing ? { color: textPri } : undefined}
                   >
@@ -438,7 +448,7 @@ export default function WeeklySalesUploadPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handlePublishClick}
-                disabled={publishOpen || unpublishedWeek?.validated !== true || isProcessing }
+                disabled={publishOpen || unpublishedWeek?.validated !== true || isProcessing}
                 style={{
                   backgroundColor: publishOpen ? (isDark ? "#333" : "#e5e7eb") : accent,
                   color: publishOpen ? textSec : "#fff",
@@ -498,7 +508,7 @@ export default function WeeklySalesUploadPage() {
               ))}
               </div>
               <div className="px-5 py-2 border-b flex items-center justify-end flex-shrink-0" style={{ borderColor: border }}>
-                <button onClick={fetchHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
+                <button onClick={refreshUploadHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
                   Refresh
                 </button>
               </div>
@@ -560,7 +570,7 @@ export default function WeeklySalesUploadPage() {
         {activeTab === "validationHistory" && (
           <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 min-h-0 flex flex-col rounded-xl border shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b flex items-center justify-end flex-shrink-0" style={{ borderColor: border }}>
-              <button onClick={fetchValidationHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
+              <button onClick={refreshValidationHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
                 Refresh
               </button>
             </div>
