@@ -382,12 +382,21 @@ export default function WeeklySalesUploadPage() {
           </div>
 
           {/* PUBLISH CARD */}
-          <div style={{ backgroundColor: bg, borderColor: border }} className="lg:basis-1/2 lg:max-w-1/2 p-4 justify-between flex flex-col">
-            <div>
-              <h2 style={{ color: textPri }} className="text-base font-semibold mb-1">Publish</h2>
-              <p style={{ color: textSec }} className="text-sm mb-6">
-                Publish the current fiscal week once all data is ready.
-              </p>
+          <div style={{ backgroundColor: bg, borderColor: border }} className="lg:basis-1/2 lg:max-w-1/2 p-4 flex justify-between flex-col">
+
+            <div className="flex justify-between">
+              <span>
+                <h2 style={{ color: textPri }} className="text-base font-semibold mb-1">Publish</h2>
+                <p style={{ color: textSec }} className="text-sm mb-6">
+                  Publish the current fiscal week once all data is ready.
+                </p>
+              </span>
+              <span>
+                <button onClick={fetchUnpublishedWeek} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
+                  Refresh
+                </button>
+
+              </span>
             </div>
             <div className="flex items-center gap-8 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
               <div>
@@ -398,11 +407,11 @@ export default function WeeklySalesUploadPage() {
                   <Skeleton width="90px" height="16px" isDark={isDark} />
                 ) : (
                   <p style={{ color: textPri }} className="text-sm font-bold">
-                    {unpublishedWeek?.published === true
-                      ? "Published"
-                      : unpublishedWeek?.published === false
+                    {status === null
+                      ? "-"
+                      : status === ""
                         ? "Not Published"
-                        : "-"}
+                        : status}
                   </p>
                 )}
               </div>
@@ -410,7 +419,7 @@ export default function WeeklySalesUploadPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handlePublishClick}
-                disabled={publishOpen}
+                disabled={publishOpen || unpublishedWeek?.validated !== true}
                 style={{
                   backgroundColor: publishOpen ? (isDark ? "#333" : "#e5e7eb") : accent,
                   color: publishOpen ? textSec : "#fff",
