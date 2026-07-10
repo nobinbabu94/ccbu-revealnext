@@ -377,7 +377,7 @@ export default function WeeklySalesUploadPage() {
 
                 <button
                   onClick={() => selectedFileType && setActiveUploadType(selectedFileType)}
-                  disabled={!selectedFileType}
+                  disabled={!selectedFileType || isProcessing}
                   style={{
                     backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
                     color: selectedFileType ? "#fff" : textSec,
@@ -393,7 +393,7 @@ export default function WeeklySalesUploadPage() {
                 </button>
                 <button
                   onClick={handleValidateClick}
-                  disabled={!canValidate}
+                  disabled={!canValidate || isProcessing}
                   style={{
                     backgroundColor: validateOpen ? (isDark ? "#333" : "#e5e7eb") : accent,
                     color: validateOpen ? textSec : "#fff",
