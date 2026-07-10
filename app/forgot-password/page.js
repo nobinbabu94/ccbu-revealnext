@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -26,6 +25,9 @@ export default function ForgotPasswordPage() {
 
   const [success, setSuccess] =
     useState("");
+
+  const [showPassword, setShowPassword] =
+    useState(false);
 
   const sendCode = async (e) => {
     e.preventDefault();
@@ -90,6 +92,59 @@ export default function ForgotPasswordPage() {
       setLoading(false);
     }
   };
+
+  const EyeIcon = ({ open }) =>
+    open ? (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M2 12C3.5 7.5 7.5 4.5 12 4.5C16.5 4.5 20.5 7.5 22 12C20.5 16.5 16.5 19.5 12 19.5C7.5 19.5 3.5 16.5 2 12Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle
+          cx="12"
+          cy="12"
+          r="3"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+      </svg>
+    ) : (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M3 3L21 21"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M10.6 5.1C11.05 5.03 11.51 5 12 5C16.5 5 20.5 8 22 12C21.5 13.3 20.8 14.47 19.9 15.47M6.5 6.6C4.6 8 3.1 9.9 2 12C3.5 16 7.5 19 12 19C13.6 19 15.1 18.6 16.4 17.9"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M9.9 9.9C9.4 10.4 9 11.15 9 12C9 13.66 10.34 15 12 15C12.85 15 13.6 14.6 14.1 14.1"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -213,19 +268,42 @@ export default function ForgotPasswordPage() {
                   New Password
                 </label>
 
-                <input
-                  type="password"
-                  value={newPassword}
-                  required
-                  minLength={8}
-                  onChange={(e) =>
-                    setNewPassword(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Enter new password"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                />
+                <div className="relative">
+                  <input
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={newPassword}
+                    required
+                    minLength={8}
+                    onChange={(e) =>
+                      setNewPassword(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Enter new password"
+                    className="w-full rounded-xl border border-slate-300 px-4 py-3 pr-12 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowPassword(
+                        !showPassword
+                      )
+                    }
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    <EyeIcon
+                      open={
+                        showPassword
+                      }
+                    />
+                  </button>
+                </div>
               </div>
 
               <button
@@ -246,6 +324,7 @@ export default function ForgotPasswordPage() {
                   setNewPassword("");
                   setError("");
                   setSuccess("");
+                  setShowPassword(false);
                 }}
                 className="w-full text-sm text-slate-500 hover:text-slate-700 cursor-pointer"
               >
