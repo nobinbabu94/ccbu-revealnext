@@ -111,6 +111,9 @@ export default function MasterUsersPage() {
       const payload = res?.data ?? res;
       let fetchedUsers = payload?.users ?? [];
 
+      // Only show accounts with role "User" in this table
+      fetchedUsers = fetchedUsers.filter((u) => u.role === "User");
+
       // Apply frontend sorting
       fetchedUsers = sortUsers(fetchedUsers, sortBy, sortDir);
 
