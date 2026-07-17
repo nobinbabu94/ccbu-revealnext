@@ -708,6 +708,7 @@ export default function WeeklySalesUploadPage() {
           retailerId={retailerId}
           theme={{ bg, bgSub, border, textPri, textSec, accent }}
           onClose={handleValidateClose}
+          fetchUnpublishedWeek={fetchValidationHistory}
         />
       )}
 

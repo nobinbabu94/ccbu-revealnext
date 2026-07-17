@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { apiPost } from "@/lib/api";
 
-const EMPTY_WEEK_FORM = { fiscal_week: "", dataweek: "", year: "" };
+const EMPTY_WEEK_FORM = { fiscal_week: "", fiscal_date: "", year: "" };
 
 /**
  * Create Week modal.
@@ -33,11 +33,11 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
     e.preventDefault();
 
     const fiscalWeek = form.fiscal_week.trim();
-    const dataWeek = form.dataweek.trim();
+    const fiscalDate = form.fiscal_date.trim();
     const year = form.year.trim();
 
-    if (!fiscalWeek || !dataWeek || !year) {
-      setError("Fiscal Week, Data Week, and Year are all required");
+    if (!fiscalWeek || !fiscalDate || !year) {
+      setError("Fiscal Week, Fiscal Date, and Year are all required");
       return;
     }
 
@@ -46,7 +46,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
     try {
       const result = await apiPost(`/retailers/${retailerId}/weeks`, {
         fiscal_week: fiscalWeek,
-        dataweek: dataWeek,
+        fiscal_date: fiscalDate,
         year,
       });
       onCreated(result);
@@ -98,10 +98,11 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
                 Fiscal Week<span style={{ color: accent }}> *</span>
               </label>
               <input
-                type="date"
+                type="text"
                 value={form.fiscal_week}
                 onChange={set("fiscal_week")}
                 required
+                placeholder="e.g. W01"
                 disabled={saving}
                 style={inputStyle}
                 className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
@@ -110,15 +111,13 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
 
             <div>
               <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>
-                Data Week<span style={{ color: accent }}> *</span>
+                Fiscal Date<span style={{ color: accent }}> *</span>
               </label>
               <input
-                type="text"
-                inputMode="numeric"
-                value={form.dataweek}
-                onChange={set("dataweek")}
+                type="date"
+                value={form.fiscal_date}
+                onChange={set("fiscal_date")}
                 required
-                placeholder="e.g. 27"
                 disabled={saving}
                 style={inputStyle}
                 className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
