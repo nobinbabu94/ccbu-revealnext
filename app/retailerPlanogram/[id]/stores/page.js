@@ -333,6 +333,7 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
           onClose={() => setPreviewUpload(null)}
           onConfirmed={handlePreviewConfirmed}
           onError={handleUploadError}
+          fetchHistory={fetchHistory}
         />
       )}
     </div>

@@ -29,7 +29,7 @@ export function FilterBar({
       className="rounded-xl border px-4 py-4 flex flex-wrap items-center gap-3 flex-shrink-0"
     >
       {/* Search input */}
-      <div className="relative flex-1 min-w-[220px]">
+      <div className="relative flex-1 max-w-[320px]">
         <svg
           className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
           style={{ color: textSec }}

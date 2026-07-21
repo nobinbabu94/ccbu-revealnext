@@ -148,7 +148,7 @@ function uploadFileToS3({ uppy, file, uploadUrl, s3Key, xhrRef }) {
 
 // ─── Preview modal ────────────────────────────────────────────────────────────
 
-export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConfirmed, onError, previewPath = "/uploadproducts" }) {
+export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConfirmed, onError, previewPath = "/uploadproducts", fetchHistory }) {
   const { bg, bgSub, border, textPri, textSec, accent, hover } = theme;
   const requestid = upload?.requestid ?? upload?.id;
   const canLoadPreview = Boolean(retailerId && requestid);
@@ -166,6 +166,7 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
       document.body.style.overflow = "";
     };
   }, []);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -204,6 +205,16 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
     }
   };
 
+  const handleCancel = useCallback(async () => {
+    if (requestid) {
+      try {
+        await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Cancelled" });
+      } catch { }
+    }
+    onClose();
+    fetchHistory?.();
+  }, [retailerId, requestid, onClose, fetchHistory]);
+
   if (typeof document === "undefined") return null;
 
   const rows = Array.isArray(preview?.rows) ? preview.rows : [];
@@ -211,7 +222,7 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
   const columns = getPreviewColumns(rows);
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={handleCancel}>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{ backgroundColor: bg, borderColor: border }}
@@ -224,7 +235,7 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCancel}
             disabled={confirming}
             className="text-2xl leading-none hover:opacity-60 transition disabled:cursor-not-allowed disabled:opacity-40"
             style={{ color: textSec }}
@@ -319,7 +330,7 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t px-6 py-4" style={{ borderColor: border }}>
-          <button type="button" onClick={onClose} disabled={confirming} className="rounded-lg border px-4 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50" style={{ borderColor: border, color: textPri }}>
+          <button type="button" onClick={handleCancel} disabled={confirming} className="rounded-lg border px-4 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50" style={{ borderColor: border, color: textPri }}>
             Cancel
           </button>
           <button

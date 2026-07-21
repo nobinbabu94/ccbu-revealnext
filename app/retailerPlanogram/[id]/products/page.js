@@ -144,7 +144,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr>
-                {[ "File Name", "Uploaded At", "Status", "Actions"].map((col) => (
+                {["File Name", "Uploaded At", "Status", "Actions"].map((col) => (
                   // "Week", "Failed Rows"
                   <th key={col} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ backgroundColor: bgSub, color: textSec }}>
                     {col}
@@ -222,6 +222,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           onClose={() => setPreviewUpload(null)}
           onConfirmed={handlePreviewConfirmed}
           onError={handleUploadError}
+          fetchHistory={fetchHistory}
         />
       )}
     </div>
@@ -410,7 +411,7 @@ export default function MasterProductsPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className="px-4 py-2.5 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px cursor-pointer" 
+                className="px-4 py-2.5 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px cursor-pointer"
                 style={{
                   color: activeTab === tab.key ? th.accent : th.textSec,
                   borderBottomColor: activeTab === tab.key ? th.accent : "transparent",
@@ -430,9 +431,9 @@ export default function MasterProductsPage() {
               searchPlaceholder="Search products…"
               dropdowns={[
                 { allLabel: "All Categories", value: categoryFilter, options: opts.categories, onChange: handleFilterChange(setCategoryFilter) },
-                { allLabel: "All Brands", value: brandFilter, options: opts.brands, onChange: handleFilterChange(setBrandFilter) },
-                { allLabel: "All Manufacturers", value: manufacturerFilter, options: opts.manufacturers, onChange: handleFilterChange(setManufacturerFilter) },
-                { allLabel: "All Segments", value: segmentFilter, options: opts.segments, onChange: handleFilterChange(setSegmentFilter) },
+                // { allLabel: "All Brands", value: brandFilter, options: opts.brands, onChange: handleFilterChange(setBrandFilter) },
+                // { allLabel: "All Manufacturers", value: manufacturerFilter, options: opts.manufacturers, onChange: handleFilterChange(setManufacturerFilter) },
+                // { allLabel: "All Segments", value: segmentFilter, options: opts.segments, onChange: handleFilterChange(setSegmentFilter) },
               ]}
               hasFilters={hasFilters}
               onSearchChange={handleSearchChange}
