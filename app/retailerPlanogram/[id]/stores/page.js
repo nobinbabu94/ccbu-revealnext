@@ -47,7 +47,7 @@ function UploadTypeBadge({ filetype }) {
 
 const HISTORY_TABS = [
   { key: "STR", label: "Store" },
-  { key: "POG", label: "Planogram" },
+  // { key: "POG", label: "Planogram" },
 ];
 
 function StoreSessionUploadSection({ retailerId, theme, addToast }) {
@@ -107,10 +107,11 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
 
   const uploadModalConfig = {
     STR: { filename: "retailerStore.xlsx", title: "Upload Store Data" },
-    POG: { filename: "retailerPlanogram.xlsx", title: "Upload Planogram" },
+    // POG: { filename: "retailerPlanogram.xlsx", title: "Upload Planogram" },
   }[activeUploadType];
 
-  const cards = CARDS;
+  // const cards = CARDS; // includes both Stores and Planogram upload cards
+  const cards = CARDS.filter((card) => card.key !== "planograms");
 
 
   return (

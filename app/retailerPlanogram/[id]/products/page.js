@@ -154,7 +154,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr>
-                {["File Name", "Uploaded At", "Status", "Actions"].map((col) => (
+                {["File Name", "Uploaded At", "Status", "Errors"].map((col) => (
                   // "Week", "Failed Rows"
                   <th key={col} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ backgroundColor: bgSub, color: textSec }}>
                     {col}
